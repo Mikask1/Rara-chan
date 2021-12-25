@@ -1,8 +1,9 @@
 # -- NHentai Module --
-from random import randrange
+from random import randrange, sample
 
 from bs4 import BeautifulSoup
 import requests
+import math
 import re
 
 from utils import utilities
@@ -99,23 +100,37 @@ class NHentai():
         else:
             return Doujin("https://nhentai.net/g/"+str(id))
 
-    def search(self, query:str, lower = 1, upper = 1) -> list:
+    def search(self, query:str) -> list:
         urls = []
-        for i in range(lower, upper+1):
-            url = "https://nhentai.net/search/?q="+"+".join(query.split())+"&page="+str(i)
-            soup = BeautifulSoup(requests.get(url, proxies=proxyDict).text, 'lxml')
-            
+        url = "https://nhentai.net/search/?q="+"+".join(query.split())+"&page=1"
+        soup = BeautifulSoup(requests.get(url, proxies=proxyDict).text, 'lxml')
+        
+        results = soup.find("div", id="content").h1.text.strip()
+        if results == "0 results":
+            return []
 
-            # If there are no results
-            if i == 1:
-                results = soup.find("div", id="content").h1.text.strip()
-                if results == "0 results":
-                    return []
+        container = list(list(soup.find("div", id="content").children)[3].children)
+        for i in container:
+            urls.append("https://nhentai.net"+i.a["href"])
+        
+        n_pages = int(results[:-8].replace(",",""))
+        last_index = int(int(n_pages)/25+2)
+
+        if last_index > 2:
+            random_page = randrange(2, last_index)
+            url = "https://nhentai.net/search/?q="+"+".join(query.split())+"&page="+str(random_page)
+            soup = BeautifulSoup(requests.get(url, proxies=proxyDict).text, 'lxml')
+
+            results = soup.find("div", id="content").h1.text.strip()
 
             container = list(list(soup.find("div", id="content").children)[3].children)
             for i in container:
                 urls.append("https://nhentai.net"+i.a["href"])
-        return urls
+        
+        if n_pages < 10:
+            return sample(urls, n_pages)
+        else:
+            return sample(urls, 10)
 
     def random(self) -> Doujin:
         url = "https://nhentai.net/"

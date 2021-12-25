@@ -3,7 +3,7 @@ import time
 import os
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, pages
 from dotenv import load_dotenv
 
 from utils import utilities
@@ -24,7 +24,7 @@ GREETINGS = ["hewwo~", "H-hi", "H-hello", "Wassup ma boi", "What is it darling?"
 
 @bot.event
 async def on_ready():
-  print("Logged in as", bot.user)
+    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
 
 # RESPOND TO CERTAIN MESSAGES
 @bot.event
@@ -63,6 +63,7 @@ async def on_message(message : str):
 
 
 # -- NHentai Cog --
+
 class Nhentai_(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
@@ -104,18 +105,27 @@ class Nhentai_(commands.Cog):
         '''
 
         if message.channel.is_nsfw():
-            print("Search")
+            print("Search", query)
             searching = await message.send('Searching...')
             doujins = self.nhentai.search(query=query+" english")
             
             if len(doujins) != 0:
-                doujin = self.nhentai.get_doujin(choice(doujins))
+                page_list = []
+                for links in doujins:
+                    doujin = self.nhentai.get_doujin(links)
+                    embed = utilities.get_doujin_embed(doujin)
+                    page_list.append(embed)
+                
+                paginator = pages.Paginator(pages=page_list, show_disabled=True, show_indicator=True)
 
-                embed = utilities.get_doujin_embed(doujin)
+                paginator.customize_button("next", button_label=">", button_style=discord.ButtonStyle.green)
+                paginator.customize_button("prev", button_label="<", button_style=discord.ButtonStyle.green)
+                paginator.customize_button("first", button_label="<<", button_style=discord.ButtonStyle.blurple)
+                paginator.customize_button("last", button_label=">>", button_style=discord.ButtonStyle.blurple)
 
-                await message.send(embed=embed)
+                await paginator.send(message)
             else:
-                await message.send("No Results found")
+                await message.send(embed= discord.Embed(title="No results found"))
 
             await searching.delete()
         else:
@@ -150,28 +160,33 @@ class Nhentai_(commands.Cog):
             await warning.delete()
 
     @commands.command()
-    async def popular(self, message, *args):
+    async def popular(self, message):
         '''
         Sends the popular page doujins from nhentai.net
         
         Command : ?popular (<index>)
         '''
 
+
         if message.channel.is_nsfw():
-            links = self.nhentai.popular()
             print("Popular")
-            if args:
-                try:
-                    doujin = self.nhentai.get_doujin(links[int(args[0])-1])
-                    embed = utilities.get_doujin_embed(doujin)
-                    await message.send(embed=embed)
-                except IndexError:
-                    await message.reply("Please select 1-5")
-            else:
-                for i in range(5):
-                    doujin = self.nhentai.get_doujin(links[i])
-                    embed = utilities.get_doujin_embed(doujin)
-                    await message.send(embed=embed)
+
+            page_list = []
+            links = self.nhentai.popular()
+            
+            for i in range(len(links)):
+                doujin = self.nhentai.get_doujin(links[i])
+                embed = utilities.get_doujin_embed(doujin)
+                page_list.append(embed)
+
+            paginator = pages.Paginator(pages=page_list, show_disabled=True, show_indicator=True)
+
+            paginator.customize_button("next", button_label=">", button_style=discord.ButtonStyle.green)
+            paginator.customize_button("prev", button_label="<", button_style=discord.ButtonStyle.green)
+            paginator.customize_button("first", button_label="<<", button_style=discord.ButtonStyle.blurple)
+            paginator.customize_button("last", button_label=">>", button_style=discord.ButtonStyle.blurple)
+            
+            await paginator.send(message)
 
 
 # -- NSFW Cog --
@@ -285,7 +300,7 @@ class Misc_(commands.Cog):
     async def ping(self, message):
         await message.send(f'Ping = {round(bot.latency * 1000)} ms')
 
-    @commands.command(aliases = ["SEGGS"])
+    @commands.command(aliases= ["SEGGS"])
     async def seggs(self, message):
         '''
         Sends the "japanese man running through a tunnel yelling seggs" clip

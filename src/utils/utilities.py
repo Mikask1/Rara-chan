@@ -92,7 +92,6 @@ def get_proxy():
     from bs4 import BeautifulSoup
     import requests
 
-
     try:
         requests.get("https://nhentai.net")
         return {}

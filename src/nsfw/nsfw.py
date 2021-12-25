@@ -15,7 +15,6 @@ class NSFW():
     get_nsfw : gets an NSFw image from imagefap.com
     '''
 
-    
     def __init__(self) -> None:
         pass
 
