@@ -1,3 +1,10 @@
+# Files
+.env
+**/cookies.pkl
+**/chromedriver.exe
+**/db.sqlite3
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
