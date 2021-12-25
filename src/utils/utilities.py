@@ -4,45 +4,6 @@ import discord
 
 from dotenv import load_dotenv
 
-def get_doujin_embed(doujin):
-    '''
-    Gets the embed form from the provided parameters from the Doujin instance
-    '''
-
-    embed = discord.Embed(title=doujin.title, url=doujin.url, color=0xFF5733)
-
-    embed.add_field(name="ID", value=doujin.id, inline=True)
-    
-    for i in doujin.languages:
-        if i == "english":
-            embed.add_field(name="Language", value="English", inline=True)
-            break
-    else:
-        embed.add_field(name="Language", value="Non-English", inline=True)
-
-    embed.add_field(name="Page", value=doujin.pages, inline=True)
-
-    if len(doujin.parodies) != 0:
-        embed.add_field(name="Parodies", value=", ".join(doujin.parodies), inline=False)
-
-    if len(doujin.characters) != 0:
-        embed.add_field(name="Characters", value=", ".join(doujin.characters), inline=False)
-
-    if len(doujin.tags) != 0:
-        embed.add_field(name="Tags", value=", ".join(doujin.tags), inline=False)
-
-    if len(doujin.artists) != 0:
-        embed.add_field(name="Authors", value=", ".join(doujin.artists), inline=True)
-
-    if len(doujin.groups) != 0:
-        embed.add_field(name="Groups", value=", ".join(doujin.groups), inline=True)
-
-    if doujin.cover != "":
-        embed.set_image(url=doujin.cover)
-
-    embed.set_footer(text = "Enjoy!")
-    return embed
-
 def checkPattern(message, pattern):
     '''
     Check if there's a pattern in a message
@@ -153,25 +114,3 @@ def instagram_login():
     WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Turn On')]"))).click()
 
     pickle.dump(driver.get_cookies() , open(r"src\instagram\cookies.pkl", "wb"))
-
-def ig_post_embed(profile, post, start_time: float):
-    '''
-    Gets the embed form of a Post instance
-    '''
-    
-    
-    if post:
-        if post.media_type == "image":
-            embed = discord.Embed(title=profile.username, url=post.url, color=0xFF5733)
-            embed.set_image(url=post.media)
-            embed.add_field(name="Caption:", value=post.caption, inline=False)
-            embed.set_footer(text="Uploaded: "+post.upload_date+"\nExecution time: "+str((time.time() - start_time)))
-            return embed
-
-        elif post.media_type == "video":
-            embed = discord.Embed(title=profile.username, url=post.url, color=0xFF5733)
-            embed.add_field(name="Caption:", value=post.caption, inline=False)
-            embed.set_footer(text="Uploaded: "+post.upload_date+"\nExecution time: "+str((time.time() - start_time)))
-            return embed
-    else:
-        return -1

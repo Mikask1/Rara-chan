@@ -71,7 +71,7 @@ class Profile():
 
 
     def __init__(self, query) -> None:
-        self.driver = webdriver.Chrome(executable_path=r"C:\Users\darre\Desktop\Discord Bot\chromedriver.exe", options=opt)
+        self.driver = webdriver.Chrome(executable_path=r"src\instagram\chromedriver.exe", options=opt)
 
         self.driver.get("https://www.instagram.com/")
         for cookie in cookies:
