@@ -12,6 +12,7 @@ My personal discord bot that I use for stuff that I find interesting.
 ### General commands
 - `?help` : shows command list
 - `?ping` : get bot's ping
+- `?seggs`: Sends the "japanese man running through a tunnel yelling seggs" clip
 
 ### ChatBot commands
 - `?chat <question>` : Uses the ChatterBot library to generate responses
@@ -27,6 +28,3 @@ My personal discord bot that I use for stuff that I find interesting.
 
 ### NSFW Scraper commands
 - `?nsfw` : Sends a random ZeroTwo NSFW from imagefap.com
-
-### Misc. commands
-- `?seggs` : Sends the "japanese man running through a tunnel yelling seggs" clip
