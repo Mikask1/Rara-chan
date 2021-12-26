@@ -4,6 +4,8 @@ import discord
 from discord.ext import commands, pages
 
 from nhentai.nhentai_module import NHentai
+from utils import dropdown_pagination
+from utils.dropdown_pagination import DropdownPaginator
 
 # -- NHentai Cog --
 class NHentai_(commands.Cog, name="NHentai"):
@@ -94,15 +96,21 @@ class NHentai_(commands.Cog, name="NHentai"):
         print("Search", query)
         searching = await ctx.send('Searching...')
 
-        doujins = self.nhentai.search(query=query+" english", size=size)
+        doujins = self.nhentai.search(query=query+" english", size=10)
         if len(doujins): # Check if there are any results
             page_list = []
-            for links in doujins:
-                doujin = self.nhentai.get_doujin(links)
+            options = []
+            for n, link in enumerate(doujins, start=1):
+                doujin = self.nhentai.get_doujin(link)
+                options.append(discord.SelectOption(
+                    label="Page "+str(n), 
+                    description="ID: "+str(doujin.id)
+                    ))
                 embed = self._get_doujin_embed(doujin)
                 page_list.append(embed)
             
-            paginator = pages.Paginator(pages=page_list, show_disabled=True, show_indicator=True)
+        
+            paginator = DropdownPaginator(page_list, "Choose Page..", options=options)
 
             paginator.customize_button("next", button_label=">", button_style=discord.ButtonStyle.green)
             paginator.customize_button("prev", button_label="<", button_style=discord.ButtonStyle.green)
@@ -153,15 +161,20 @@ class NHentai_(commands.Cog, name="NHentai"):
         searching = await ctx.send('Searching...')
 
         print("Popular")
-        page_list = []
         links = self.nhentai.popular()
         
-        for i in range(len(links)):
-            doujin = self.nhentai.get_doujin(links[i])
+        page_list = []
+        options = []
+        for n, link in enumerate(links, start=1):
+            doujin = self.nhentai.get_doujin(link)
+            options.append(discord.SelectOption(
+                label="Page "+str(n), 
+                description="ID: "+str(doujin.id)
+                ))
             embed = self._get_doujin_embed(doujin)
             page_list.append(embed)
-
-        paginator = pages.Paginator(pages=page_list, show_disabled=True, show_indicator=True)
+    
+        paginator = DropdownPaginator(page_list, "Choose Page..", options=options)
 
         paginator.customize_button("next", button_label=">", button_style=discord.ButtonStyle.green)
         paginator.customize_button("prev", button_label="<", button_style=discord.ButtonStyle.green)

@@ -84,4 +84,16 @@ class RaraChan(commands.Bot):
 
 if __name__ == '__main__':
     rarachan = RaraChan()
+
+    for i in rarachan.commands:
+        print(i, i.signature)
+
+    '''
+    cog_name : cog
+    qualified_name : name
+    short doc : short desc.
+    help: long desc.
+    signature: ?get 
+    '''
+
     rarachan.run()
