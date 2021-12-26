@@ -1,12 +1,12 @@
 import os
-import time
-import discord
 
 from dotenv import load_dotenv
 
 def checkPattern(message, pattern):
     '''
     Check if there's a pattern in a message
+
+    This function is explicitly used by `in_oneWord` function
 
     Example:
     "uwogh" is in "UWWWWWOOOGGGGH"
@@ -45,15 +45,14 @@ def get_proxy():
     '''
     Gets a random working free proxy that works with HTTPS from free-proxy-list.net
 
-    It works by scraping the website and getting the list of proxies available and checks one by one
-    which one can connect to nhentai.net
+    It works by scraping free-proxy-list.net and getting the list of proxies available and checks one by one
+    and checks which one works with https and can connect to nhentai.net
     '''
-
 
     from bs4 import BeautifulSoup
     import requests
 
-    try:
+    try: # if nhentai.net is blocked
         requests.get("https://nhentai.net")
         return {}
     except Exception:
@@ -86,6 +85,11 @@ def get_proxy():
 def instagram_login():
     '''
     Logs into instagram and save the cookies
+
+    Enter username and password, 
+    then press "Save Info" to save login info
+    then press "Turn On" to turn on notification
+    then saves the cookies in a pickle which will be applied in the future to the webdriver
     '''
 
 

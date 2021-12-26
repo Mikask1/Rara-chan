@@ -1,6 +1,5 @@
 from chatterbot import ChatBot
 from random import choice
-import os
 
 default_response = ["I'm sorry darling~, I can't understand you", "Wakaranai", "I don't understand you :<", "Rara chan ga wakaranai", "Sore tte doiu imi??", "Moo~~ imi wo wakanai", "Nani o itteru no ka??~ Wakaranai wa", "Atama ga okashi yo ne?"]
 
@@ -16,6 +15,7 @@ def answer(message):
 
     return chatbot.get_response(message)
 
+# For debugging purposes
 if __name__ == "__main__":
     while True:
         print(chatbot.get_response(input("> ")))

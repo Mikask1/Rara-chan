@@ -35,15 +35,17 @@ class Doujin():
         self.url = url
         soup = BeautifulSoup(requests.get(self.url, proxies=proxyDict).text, 'lxml')
         
-        self.valid = 1
+        self.exist = 1
+
+        # if the doujin exists
         if soup.find("div", id="content").div.h1.text == "404 – Not Found":
-            self.valid = 0
+            self.exist = 0
             return
 
         self.cover = soup.find("div", id="cover").a.img["data-src"]
         self.id = soup.find("h3", id="gallery_id").text[1:]
         
-        # parodies, characters, tags, artists, groups, languages, categories, pages, upload date, title
+        # These try and excepts checks if the field exists
         info = list(soup.find("section", id="tags").children)
         try:
             self.parodies = list(map(lambda a : a.span.text.capitalize(), list(info[0].span.children)))
@@ -73,7 +75,6 @@ class Doujin():
             self.pages = int(info[7].span.a.span.text)
         except AttributeError:
             self.pages = 0
-
         try:  
             self.title = "".join(map(lambda span : span.text, list(soup.find("div", id="info").h1.children)))
         except AttributeError:
@@ -90,7 +91,6 @@ class NHentai():
     popular : gets the popular page doujins
     '''
 
-    
     def __init__(self) -> None:
         pass
 
@@ -100,7 +100,13 @@ class NHentai():
         else:
             return Doujin("https://nhentai.net/g/"+str(id))
 
-    def search(self, query:str) -> list:
+    def search(self, query:str, size) -> list:
+        '''
+        Gets a list of URL from the first page and another random page
+
+        Then it returns a sample from those URLs
+        '''
+
         urls = []
         url = "https://nhentai.net/search/?q="+"+".join(query.split())+"&page=1"
         soup = BeautifulSoup(requests.get(url, proxies=proxyDict).text, 'lxml')
@@ -109,13 +115,14 @@ class NHentai():
         if results == "0 results":
             return []
 
+
         container = list(list(soup.find("div", id="content").children)[3].children)
         for i in container:
             urls.append("https://nhentai.net"+i.a["href"])
         
+
         n_pages = int(results[:-8].replace(",",""))
         last_index = int(int(n_pages)/25+2)
-
         if last_index > 2:
             random_page = randrange(2, last_index)
             url = "https://nhentai.net/search/?q="+"+".join(query.split())+"&page="+str(random_page)
@@ -127,12 +134,20 @@ class NHentai():
             for i in container:
                 urls.append("https://nhentai.net"+i.a["href"])
         
-        if n_pages < 10:
+
+        if n_pages < size:
             return sample(urls, n_pages)
         else:
-            return sample(urls, 10)
+            return sample(urls, size)
 
     def random(self) -> Doujin:
+        '''
+        Gets a random doujin by checking the number of doujins that exists in nhentai.net
+        then choosse a random id
+        
+        This is faster than nhentai.net built-in random feature
+        '''
+
         url = "https://nhentai.net/"
         soup = BeautifulSoup(requests.get(url, proxies=proxyDict).text, 'lxml')
 
@@ -145,6 +160,11 @@ class NHentai():
         return Doujin("https://nhentai.net/g/"+str(id))
 
     def popular(self) -> list:
+        '''
+        Reads the popular page
+        '''
+
+
         url = "https://nhentai.net/"
         soup = BeautifulSoup(requests.get(url, proxies=proxyDict).text, 'lxml')
 

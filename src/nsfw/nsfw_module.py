@@ -7,6 +7,7 @@ import requests
 from utils import utilities
 
 proxyDict = utilities.get_proxy()
+
 class NSFW():
     '''
     This is an NSFW Class

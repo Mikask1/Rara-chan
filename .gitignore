@@ -1,4 +1,5 @@
 # Files
+logs.txt
 .env
 **/cookies.pkl
 **/chromedriver.exe
