@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 from nsfw.nsfw_module import NSFW
 
-class NFSW_(commands.Cog, name="NSFW"):
+class NSFW_(commands.Cog, name="NSFW"):
     def __init__(self, bot):
         self.bot = bot
         self.nsfw_ = NSFW()
@@ -30,3 +30,6 @@ class NFSW_(commands.Cog, name="NSFW"):
 
         await searching.delete()
         await ctx.reply(embed=embed)
+
+def setup(bot):
+    bot.add_cog(NSFW_(bot))

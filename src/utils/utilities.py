@@ -2,6 +2,16 @@ import os
 
 from dotenv import load_dotenv
 
+def get_cogs(folder):
+    subfolders = [file.path for file in os.scandir(folder) if file.is_dir()]
+    paths = [os.listdir(path) for path in subfolders]
+    cogs = []
+    for folders in paths:
+        for file in folders:
+            if file.endswith("cog.py"):
+                cogs.append(file)
+    return cogs
+
 def checkPattern(message, pattern):
     '''
     Check if there's a pattern in a message
@@ -27,7 +37,7 @@ def checkPattern(message, pattern):
             return True
     return False
     
-def in_oneWord(message):
+def in_oneWord(message, pattern):
     '''
     Checks if the pattern is in one word
     
@@ -37,7 +47,7 @@ def in_oneWord(message):
     '''
 
     for i in message.split():
-        if checkPattern(i, "uwogh"):
+        if checkPattern(i, pattern):
             return True
     return False
 

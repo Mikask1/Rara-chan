@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands, pages
 
 from nhentai.nhentai_module import NHentai
-from utils import dropdown_pagination
+
 from utils.dropdown_pagination import DropdownPaginator
 
 # -- NHentai Cog --
@@ -183,3 +183,6 @@ class NHentai_(commands.Cog, name="NHentai"):
         
         await searching.delete()
         await paginator.send(ctx)
+
+def setup(bot):
+    bot.add_cog(NHentai_(bot))

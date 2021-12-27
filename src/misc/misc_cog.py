@@ -23,3 +23,6 @@ class Misc_(commands.Cog, name="Misc"):
 
         print("SEGGGGGGGGGSSSSSSSS")
         await ctx.reply("https://cdn.discordapp.com/attachments/903149126353575956/910047595454398485/seggs.mp4", allowed_mentions=NO_REPLY_MENTION)
+    
+def setup(bot):
+    bot.add_cog(Misc_(bot))

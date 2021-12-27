@@ -66,21 +66,26 @@ class Instagram_(commands.Cog, name="Instagram"):
 
     @get.command()
     async def random(self, ctx, *, query):
+        '''
+        Gets a random post from an Instagram account
+        '''
         start_time = time.time()
         loading = await ctx.reply("Getting Profile..")
         profile = Profile(query)
 
-        if not profile.exist: # if the search results has no results
+        if not profile.exist:
             await ctx.reply("No results found")
             
         post = profile.get_random_post()
         
-        if not post: # if it fails while fetching the data
+        if not post:
             await ctx.reply("Sorry. Something went wrong")
 
         embed = self._get_Post_embed(profile, post, start_time)
 
-        # Since embed can't store videos, we need to send the video first then the embed
+        '''
+        Since embed can't store videos, we need to send the video first then the embed
+        '''
         if post.media_type == "video":
             await ctx.send(post.media)
 
@@ -94,3 +99,6 @@ class Instagram_(commands.Cog, name="Instagram"):
             await ctx.reply(error_message)
         if isinstance(error, commands.errors.CommandInvokeError):
             await ctx.reply(error_message)
+
+def setup(bot):
+    bot.add_cog(Instagram_(bot))
