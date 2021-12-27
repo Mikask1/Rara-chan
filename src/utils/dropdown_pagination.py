@@ -25,18 +25,6 @@ class _Dropdown(discord.ui.Select):
         self.paginator.current_page = page_number
         await self.paginator.goto_page(interaction, page_number=page_number)
 
-class _DropdownView(discord.ui.View):
-    def __init__(self, 
-                placeholder: str, 
-                options: list, 
-                paginator: Paginator):
-
-        super().__init__()
-
-        dropdown = _Dropdown(placeholder=placeholder, paginator=paginator, options=options)
-
-        super().add_item(dropdown)
-
 class DropdownPaginator(Paginator):
     def __init__(
                 self: Paginator, 
@@ -48,6 +36,8 @@ class DropdownPaginator(Paginator):
 
         self.pages = pages
 
-        view = _DropdownView(paginator=self, placeholder=placeholder, options=options)
+        view = discord.ui.View()
+        dropdown = _Dropdown(placeholder=placeholder, paginator=self, options=options)
+        view.add_item(dropdown)
 
         super().__init__(pages=self.pages, custom_view=view, show_indicator=show_indicator, show_disabled=show_disabled)
