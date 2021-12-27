@@ -129,6 +129,18 @@ class Profile():
         return list(posts.keys())
 
     def download(self, start, end):
+        """
+        Downloads every single post from start to end (1 based index).
+        It only works with images because videos have weird links
+
+        How does it work?
+        1. Open chrome and visit instagram and load the cookies in it (login credentials)
+        2. Input the query onto the search bar and returns the first account
+        3. Loads all the post and getting their links by scrolling down until the `end` index is found
+        4. Loads all the post and gets the image from each one of them
+        5. Writes the byte stream onto a .jpg file
+        """
+        
         posts = self.load_profile(end)[start-1:end-1]
 
         import requests
