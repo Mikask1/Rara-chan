@@ -8,6 +8,7 @@ class NSFW_(commands.Cog, name="NSFW"):
     def __init__(self, bot):
         self.bot = bot
         self.nsfw_ = NSFW()
+        
 
     @commands.command(aliases = ["NSFW"])
     async def nsfw(self, ctx):

@@ -2,7 +2,10 @@ from random import randrange, choice
 import os
 from datetime import datetime
 
+from discord.ui.button import Button
 import discord
+from discord import message
+from discord import embeds
 from discord.ext import commands, pages
 from dotenv import load_dotenv
 
@@ -20,12 +23,12 @@ GREETINGS = ["hewwo~", "H-hi", "H-hello", "Wassup ma boi", "What is it darling?"
 class RaraChan(commands.Bot):
     def __init__(self, help_command) -> None:
         super().__init__(command_prefix = "?", help_command=help_command)
-        
         cogs = utilities.get_cogs("src")
         for cog in cogs:
             self.load_extension(f"{cog[:-7]}.{cog[:-3]}")
         
     async def on_ready(self):
+        self.profile_url = self.user.avatar.url
         print(f"Logged in as {self.user} (ID: {self.user.id})")
 
     async def on_message(self, ctx : str):
@@ -79,22 +82,22 @@ class RaraHelpCommand(commands.DefaultHelpCommand):
         super().__init__(**options)
 
     async def send_bot_help(self, mapping):
-        
-        """
-        The pycord library had a bug :(
-
         page_list = []
         options = []
         for cog in mapping:
             if cog == None: # No category
                 continue
 
-            embed = discord.Embed(title=cog.qualified_name)
+            embed = discord.Embed(title=cog.qualified_name, color=0x0080ff)
             
-            for command in cog.get_commands():
-                embed.add_field(name=command.qualified_name+":", value=command.short_doc)
+            embed.set_author(name="Rara-chan", icon_url=rarachan.profile_url)
 
+            for command in cog.get_commands():
+                embed.add_field(name="?"+command.qualified_name, value=command.short_doc, inline=False)
+
+            embed.add_field(name="​​", value="﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏", inline=False)
             embed.set_footer(text="Type ?help command for more info on a command.\nYou can also type ?help category for more info on a category.")
+            
             page_list.append(embed)
             
             options.append(discord.SelectOption(
@@ -103,17 +106,49 @@ class RaraHelpCommand(commands.DefaultHelpCommand):
 
         paginator = DropdownPaginator(pages=page_list, options=options, placeholder="Choose category..")
         
-        await paginator.send(self.get_destination())"""
-        return await super().send_bot_help(mapping)
+        await paginator.send(self.context)
 
     async def send_cog_help(self, cog):
-        return await super().send_cog_help(cog)
+        if cog == None: # No category
+            await self.context.send("No such command exist")
+
+        embed = discord.Embed(title=cog.qualified_name, color=0x0080ff)
+        
+        embed.set_author(name="Rara-chan", icon_url=rarachan.profile_url)
+
+        for command in cog.get_commands():
+            embed.add_field(name="?"+command.qualified_name, value=command.short_doc, inline=False)
+
+        embed.add_field(name="​​", value="﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏", inline=False)
+        embed.set_footer(text="Type ?help command for more info on a command.\nYou can also type ?help category for more info on a category.")
+
+        await self.context.send(embed=embed)
 
     async def send_group_help(self, group):
-        return await super().send_group_help(group)
+        embed = discord.Embed(title=group.qualified_name.upper(), color=0x0080ff)
+        embed.set_author(name="Rara-chan", icon_url=rarachan.profile_url)
+
+        embed.add_field(name="?"+group.qualified_name+" "+group.signature, value=group.short_doc, inline=False)
+
+        subcommands = "\n?".join([command.qualified_name for command in group.commands])
+        embed.add_field(name="sub-commands", value="?"+subcommands, inline=False)
+        
+        embed.add_field(name="​​", value="﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏", inline=False)
+        embed.set_footer(text="Type ?help command for more info on a command.\nYou can also type ?help category for more info on a category.")
+
+        await self.context.send(embed=embed)
 
     async def send_command_help(self, command):
-        return await super().send_command_help(command)
+        embed = discord.Embed(title=command.qualified_name.upper(), color=0x0080ff)
+        embed.set_author(name="Rara-chan", icon_url=rarachan.profile_url)
+
+        embed.add_field(name="?"+command.qualified_name+""+command.signature, value="​​", inline=False)
+        embed.add_field(name="Description", value=command.help, inline=False)
+        
+        embed.add_field(name="​​", value="﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏", inline=False)
+        embed.set_footer(text="Type ?help command for more info on a command.\nYou can also type ?help category for more info on a category.")
+
+        await self.context.send(embed=embed)
 
 if __name__ == '__main__':
     rarachan = RaraChan(help_command=RaraHelpCommand(no_category="Help"))
