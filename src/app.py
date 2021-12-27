@@ -152,12 +152,5 @@ class RaraHelpCommand(commands.DefaultHelpCommand):
 
 if __name__ == '__main__':
     rarachan = RaraChan(help_command=RaraHelpCommand(no_category="Help"))
-    '''
-    cog_name : cog
-    qualified_name : name
-    short doc : short desc.
-    help: long desc.
-    signature: ?get 
-    '''
 
     rarachan.run()
