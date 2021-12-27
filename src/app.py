@@ -3,10 +3,11 @@ import os
 from datetime import datetime
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, pages
 from dotenv import load_dotenv
 
 from utils import utilities
+from utils.dropdown_pagination import DropdownPaginator
 
 load_dotenv()
 
@@ -17,21 +18,12 @@ SEGS = ["SEEEGGGGGGSSS", "SEEEEEEEEGGGGGSSSS", "SEGGGGS", "AHHHH KIMOCHI SEGGGGG
 GREETINGS = ["hewwo~", "H-hi", "H-hello", "Wassup ma boi", "What is it darling?", "Konnichiwa~", "Sekkusu shiyou ze", "Domoo~", "Iyaa~~ hanashikakenaide", "Kimoi", "Shine", "Baka", "Betsuni sukitte wake janai ndakara, baka", "...", "yada~ hanashitakunai", "urusai baka"]
 
 class RaraChan(commands.Bot):
-    def __init__(self) -> None:
-        help_command = commands.DefaultHelpCommand(no_category = 'Help')
+    def __init__(self, help_command) -> None:
         super().__init__(command_prefix = "?", help_command=help_command)
-
-        from nhentai.nhentai_cog import NHentai_
-        from instagram.instagram_cog import Instagram_
-        from nsfw.nsfw_cog import NFSW_
-        from chatbot.chatbot_cog import ChatBot_
-        from misc.misc_cog import Misc_
-
-        self.add_cog(NHentai_(self))
-        self.add_cog(Instagram_(self))
-        self.add_cog(NFSW_(self))
-        self.add_cog(ChatBot_(self))
-        self.add_cog(Misc_(self))
+        
+        cogs = utilities.get_cogs("src")
+        for cog in cogs:
+            self.load_extension(f"{cog[:-7]}.{cog[:-3]}")
         
     async def on_ready(self):
         print(f"Logged in as {self.user} (ID: {self.user.id})")
@@ -40,7 +32,7 @@ class RaraChan(commands.Bot):
         if not ctx.author.bot:
             pp_message = ctx.content.lower().strip() # pre-processed ctx
 
-            if ctx.author != self.user and utilities.in_oneWord(pp_message):
+            if ctx.author != self.user and utilities.in_oneWord(pp_message, "uwogh"):
                 seggs = choice(SEGS)
                 print(seggs)
                 await ctx.reply(seggs)
@@ -82,12 +74,49 @@ class RaraChan(commands.Bot):
     def run(self):
         super().run(TOKEN)
 
+class RaraHelpCommand(commands.DefaultHelpCommand):
+    def __init__(self, **options):
+        super().__init__(**options)
+
+    async def send_bot_help(self, mapping):
+        
+        """
+        The pycord library had a bug :(
+
+        page_list = []
+        options = []
+        for cog in mapping:
+            if cog == None: # No category
+                continue
+
+            embed = discord.Embed(title=cog.qualified_name)
+            
+            for command in cog.get_commands():
+                embed.add_field(name=command.qualified_name+":", value=command.short_doc)
+
+            embed.set_footer(text="Type ?help command for more info on a command.\nYou can also type ?help category for more info on a category.")
+            page_list.append(embed)
+            
+            options.append(discord.SelectOption(
+                label=cog.qualified_name
+                ))
+
+        paginator = DropdownPaginator(pages=page_list, options=options, placeholder="Choose category..")
+        
+        await paginator.send(self.get_destination())"""
+        return await super().send_bot_help(mapping)
+
+    async def send_cog_help(self, cog):
+        return await super().send_cog_help(cog)
+
+    async def send_group_help(self, group):
+        return await super().send_group_help(group)
+
+    async def send_command_help(self, command):
+        return await super().send_command_help(command)
+
 if __name__ == '__main__':
-    rarachan = RaraChan()
-
-    for i in rarachan.commands:
-        print(i, i.signature)
-
+    rarachan = RaraChan(help_command=RaraHelpCommand(no_category="Help"))
     '''
     cog_name : cog
     qualified_name : name
