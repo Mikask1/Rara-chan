@@ -52,8 +52,6 @@ class Post():
         upload_date_element = driver.find_element(By.XPATH, "//a[@href='"+url[25:]+"']/*")
         self.upload_date = upload_date_element.get_attribute("innerText").capitalize()
 
-        driver.quit()
-
 class Profile():
     '''
     This is a Profile Class
@@ -130,6 +128,23 @@ class Profile():
 
         return list(posts.keys())
 
+    def download(self, start, end):
+        posts = self.load_profile(end)[start-1:end-1]
+
+        import requests
+        index = 1
+        for post_url in posts:
+            try:
+                post = Post(url= post_url, driver= self.driver)
+                if post.media_type == "image":
+                    url = post.media
+                    with open("src/instagram/posts/"+str(index)+".jpg", "wb") as file:
+                        file.write(requests.get(url).content)
+                    index += 1
+            except Exception:
+                continue
+
+
     def get_random_post(self) -> Post:
         '''
         Gets a random post from the account
@@ -155,3 +170,43 @@ class Profile():
             return Post(post_url, self.driver)
         except IndexError:
             return 0
+
+def instagram_login():
+    '''
+    Logs into instagram and save the cookies
+
+    Enter username and password, 
+    then press "Save Info" to save login info
+    then press "Turn On" to turn on notification
+    then saves the cookies in a pickle which will be applied in the future to the webdriver
+    '''
+
+
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    import pickle
+    from dotenv import load_dotenv
+    opt = webdriver.ChromeOptions()
+    opt.add_experimental_option('excludeSwitches', ['enable-logging'])
+
+
+    load_dotenv()
+    driver = webdriver.Chrome(executable_path=r"src\instagram\chromedriver.exe", options=opt)
+    driver.get("https://www.instagram.com/")
+
+    username = WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='username']")))
+    password = WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='password']")))
+    username.clear()
+    password.clear()
+    username.send_keys(os.getenv("ig_username"))
+    password.send_keys(os.getenv("ig_password"))
+    driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
+    WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Save Info')]"))).click()
+    WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Turn On')]"))).click()
+
+    pickle.dump(driver.get_cookies() , open(r"src\instagram\cookies.pkl", "wb"))
+
+profile = Profile(query="real yami")
+profile.download(start=1, end=434)
