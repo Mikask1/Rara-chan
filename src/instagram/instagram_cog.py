@@ -14,22 +14,14 @@ class Instagram_(commands.Cog, name="Instagram"):
         Gets the embed of a Post instance
         '''
         
-        if not post: # if something went wrong while fetching the data
-            return 0
-
-        if post.media_type == "image":
-            embed = discord.Embed(title=profile.username, url=post.url, color=0xFF5733)
+        embed = discord.Embed(title=profile.username, url=post.url, color=0xFF5733)
+        if not post.is_video:
             embed.set_image(url=post.media)
-            embed.add_field(name="Caption:", value=post.caption, inline=False)
-            embed.set_footer(text="Uploaded: "+post.upload_date+"\nExecution time: "+str((time.time() - start_time)))
-            return embed
 
-        elif post.media_type == "video":
-            embed = discord.Embed(title=profile.username, url=post.url, color=0xFF5733)
-            embed.add_field(name="Caption:", value=post.caption, inline=False)
-            embed.set_footer(text="Uploaded: "+post.upload_date+"\nExecution time: "+str((time.time() - start_time)))
-            return embed
-
+        embed.add_field(name="Caption:", value=post.caption, inline=False)
+        embed.set_footer(text="Uploaded: "+post.upload_date+"\nExecution time: "+str((time.time() - start_time)))
+        return embed
+        
     @commands.group(invoke_without_command= True)
     async def get(self, ctx, option, *, query: str):
         '''
@@ -53,15 +45,12 @@ class Instagram_(commands.Cog, name="Instagram"):
         if not post: # if it fails while fetching the data
             await ctx.reply("Sorry. Something went wrong")
 
+        if post.is_video:
+            ctx.send(post.media)
+
         embed = self._get_Post_embed(profile, post, start_time)
-    
-        print(post.media)
 
-        # Since embed can't store videos, we need to send the video first then the embed
-        if post.media_type == "video":
-            await ctx.send(post.media)
-
-        await ctx.reply(embed=embed)
+        await ctx.send(embed=embed)
         await loading.delete()
 
     @get.command()
@@ -81,15 +70,12 @@ class Instagram_(commands.Cog, name="Instagram"):
         if not post:
             await ctx.reply("Sorry. Something went wrong")
 
+        if post.is_video:
+            ctx.send(post.media)
+
         embed = self._get_Post_embed(profile, post, start_time)
 
-        '''
-        Since embed can't store videos, we need to send the video first then the embed
-        '''
-        if post.media_type == "video":
-            await ctx.send(post.media)
-
-        await ctx.reply(embed=embed)
+        await ctx.send(embed=embed)
         await loading.delete()
 
     @get.error

@@ -73,13 +73,25 @@ class RaraChan(commands.Bot):
         
         with open("logs.txt", "a", encoding="utf-8") as log:
             log.write(f"{date}: User {user} used ?{command} in #{channel} at [{server}]\n")
-            
+
+    async def on_command_error(self, error, ctx):
+        if isinstance(error, commands.CommandNotFound):
+            await ctx.reply("No such command exist")
+        else:
+            raise error
+
     def run(self):
         super().run(TOKEN)
 
 class RaraHelpCommand(commands.DefaultHelpCommand):
     def __init__(self, **options):
         super().__init__(**options)
+
+    def set_information(self, embed):
+        embed.set_author(name="Rara-chan", icon_url=rarachan.profile_url)
+        embed.add_field(name="​​", value="﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏", inline=False)
+        embed.set_footer(text="Type ?help command for more info on a command.\nYou can also type ?help category for more info on a category.")
+        return embed
 
     async def send_bot_help(self, mapping):
         page_list = []
@@ -89,14 +101,11 @@ class RaraHelpCommand(commands.DefaultHelpCommand):
                 continue
 
             embed = discord.Embed(title=cog.qualified_name, color=0x0080ff)
-            
-            embed.set_author(name="Rara-chan", icon_url=rarachan.profile_url)
 
             for command in cog.get_commands():
                 embed.add_field(name="?"+command.qualified_name, value=command.short_doc, inline=False)
 
-            embed.add_field(name="​​", value="﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏", inline=False)
-            embed.set_footer(text="Type ?help command for more info on a command.\nYou can also type ?help category for more info on a category.")
+            embed = self.set_information(embed)
             
             page_list.append(embed)
             
@@ -113,40 +122,33 @@ class RaraHelpCommand(commands.DefaultHelpCommand):
             await self.context.send("No such command exist")
 
         embed = discord.Embed(title=cog.qualified_name, color=0x0080ff)
-        
-        embed.set_author(name="Rara-chan", icon_url=rarachan.profile_url)
 
         for command in cog.get_commands():
             embed.add_field(name="?"+command.qualified_name, value=command.short_doc, inline=False)
 
-        embed.add_field(name="​​", value="﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏", inline=False)
-        embed.set_footer(text="Type ?help command for more info on a command.\nYou can also type ?help category for more info on a category.")
+        embed = self.set_information(embed)
 
         await self.context.send(embed=embed)
 
     async def send_group_help(self, group):
         embed = discord.Embed(title=group.qualified_name.upper(), color=0x0080ff)
-        embed.set_author(name="Rara-chan", icon_url=rarachan.profile_url)
-
-        embed.add_field(name="?"+group.qualified_name+" "+group.signature, value=group.short_doc, inline=False)
+    
+        embed.add_field(name="?"+group.qualified_name+"  "+group.signature, value=group.short_doc, inline=False)
 
         subcommands = "\n?".join([command.qualified_name for command in group.commands])
         embed.add_field(name="sub-commands", value="?"+subcommands, inline=False)
         
-        embed.add_field(name="​​", value="﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏", inline=False)
-        embed.set_footer(text="Type ?help command for more info on a command.\nYou can also type ?help category for more info on a category.")
+        embed = self.set_information(embed)
 
         await self.context.send(embed=embed)
 
     async def send_command_help(self, command):
         embed = discord.Embed(title=command.qualified_name.upper(), color=0x0080ff)
-        embed.set_author(name="Rara-chan", icon_url=rarachan.profile_url)
 
-        embed.add_field(name="?"+command.qualified_name+""+command.signature, value="​​", inline=False)
+        embed.add_field(name="?"+command.qualified_name+"  "+command.signature, value="​​", inline=False)
         embed.add_field(name="Description", value=command.help, inline=False)
         
-        embed.add_field(name="​​", value="﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏", inline=False)
-        embed.set_footer(text="Type ?help command for more info on a command.\nYou can also type ?help category for more info on a category.")
+        embed = self.set_information(embed)
 
         await self.context.send(embed=embed)
 
