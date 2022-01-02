@@ -75,7 +75,7 @@ class Instagram_(commands.Cog, name="Instagram"):
         embed = self._get_Post_embed(profile, post, start_time)
         if post.is_video:
             await loading.edit(content=post.media)
-            await ctx.reply(embed=embed)
+            await ctx.send(embed=embed)
         else:
             await loading.edit(content="", embed=embed)
 

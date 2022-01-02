@@ -17,6 +17,7 @@ CHROMEDRIVER = r"src\instagram\chromedriver.exe"
 
 opt = webdriver.ChromeOptions()
 opt.add_experimental_option('excludeSwitches', ['enable-logging'])
+opt.add_argument("--headless")
 cookies = pickle.load(open(r"src\instagram\cookies.pkl", "rb"))
 driver = webdriver.Chrome(executable_path=CHROMEDRIVER, options=opt)
 driver.get("https://www.instagram.com/")
@@ -82,13 +83,13 @@ class Profile():
         if query[:26] == "https://www.instagram.com/":
             self.link = query
         else:
-            search = WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Search']")))
+            search = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Search']")))
             search.clear()
             search.send_keys(query)
 
             # Waits until the search bar finishes it's search
-            WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//div[@aria-hidden='false']")))
-            WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//div[@role='none']")))
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@aria-hidden='false']")))
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@role='none']")))
             results = driver.find_elements(By.XPATH, "//div[@role='none']")
 
             index = 0
@@ -172,7 +173,7 @@ class Profile():
         Gets a random post from the account
         '''
 
-        n_posts = int(WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.CLASS_NAME, "g47SY "))).get_attribute("innerText").strip())
+        n_posts = int(WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "g47SY "))).get_attribute("innerText").strip())
         posts = self.load_profile(randrange(n_posts % 60)) # Makes sure the randrange does not exceed 60
 
         try:
@@ -217,16 +218,16 @@ def instagram_login():
     driver = webdriver.Chrome(executable_path=CHROMEDRIVER, options=opt)
     driver.get("https://www.instagram.com/")
 
-    username = WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='username']")))
-    password = WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='password']")))
+    username = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='username']")))
+    password = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='password']")))
     username.clear()
     password.clear()   
     username.send_keys(USERNAME)
     password.send_keys(PASSWORD)
 
     driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
-    WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Save Info')]"))).click()
-    WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Turn On')]"))).click()
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Save Info')]"))).click()
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Turn On')]"))).click()
 
     pickle.dump(driver.get_cookies() , open(r"src\instagram\cookies.pkl", "wb"))
     driver.close()
