@@ -122,7 +122,7 @@ class RaraHelpCommand(commands.DefaultHelpCommand):
             await self.context.send("No such command exist")
 
         embed = discord.Embed(title=cog.qualified_name, color=0x0080ff)
-
+        
         for command in cog.get_commands():
             embed.add_field(name="?"+command.qualified_name, value=command.short_doc, inline=False)
 

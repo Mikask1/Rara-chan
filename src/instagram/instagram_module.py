@@ -1,6 +1,9 @@
 # -- Instagram Module --
 from random import choice, randrange
 import time
+import os
+from datetime import datetime
+import asyncio
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -8,16 +11,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pickle
 import requests
-
 import json
-import os
-from datetime import datetime
 
 CHROMEDRIVER = r"src\instagram\chromedriver.exe"
 
 opt = webdriver.ChromeOptions()
 opt.add_experimental_option('excludeSwitches', ['enable-logging'])
 cookies = pickle.load(open(r"src\instagram\cookies.pkl", "rb"))
+driver = webdriver.Chrome(executable_path=CHROMEDRIVER, options=opt)
+driver.get("https://www.instagram.com/")
+for cookie in cookies:
+    driver.add_cookie(cookie)
+driver.refresh()
 
 class Post():
     '''
@@ -51,7 +56,6 @@ class Post():
         self.unix = container["taken_at_timestamp"]
         self.upload_date = datetime.utcfromtimestamp(self.unix).strftime('%d %B %Y %H:%M:%S')
         
-
 class Profile():
     '''
     This is a Profile Class
@@ -69,45 +73,38 @@ class Profile():
     '''
 
 
-    def __init__(self, query) -> None:
-        link = ""
+    def __init__(self) -> None:
+        pass
 
-        self.driver = webdriver.Chrome(executable_path=CHROMEDRIVER, options=opt)
-
-        self.driver.get("https://www.instagram.com/")
-        for cookie in cookies:
-            self.driver.add_cookie(cookie)
-
+    async def _init(self, query):
+        self.link = None
         self.exist = 1
         if query[:26] == "https://www.instagram.com/":
-            link = query
+            self.link = query
         else:
-            self.driver.refresh() # Refresh to apply the cookies
-
-            search = WebDriverWait(self.driver, 100).until(EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Search']")))
+            search = WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Search']")))
             search.clear()
             search.send_keys(query)
 
             # Waits until the search bar finishes it's search
-            WebDriverWait(self.driver, 100).until(EC.presence_of_element_located((By.XPATH, "//div[@aria-hidden='false']")))
-            WebDriverWait(self.driver, 100).until(EC.presence_of_element_located((By.XPATH, "//div[@role='none']")))
-            results = self.driver.find_elements(By.XPATH, "//div[@role='none']")
+            WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//div[@aria-hidden='false']")))
+            WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//div[@role='none']")))
+            results = driver.find_elements(By.XPATH, "//div[@role='none']")
 
             index = 0
             if results: # if the search query returns anything
                 while results: # Checks if the result is an account
-                    link = results[index].find_element(By.TAG_NAME, "a").get_attribute("href")
-                    if "explore" in link:
+                    self.link = results[index].find_element(By.TAG_NAME, "a").get_attribute("href")
+                    if "explore" in self.link:
                         index += 1
                         continue
                     break
             else:
-                raise 
+                self.exist = 0
         
-        if link:
-            self.link = link
-            self.username = link[26:-1]
-            self.driver.get(link)
+        if self.link:
+            self.username = self.link[26:-1]
+            driver.get(self.link)
 
     def load_profile(self, index) -> list:
         '''
@@ -118,9 +115,10 @@ class Profile():
         
         links = []
         while len(posts) < index: # Keeps scrolling down until the index of the post is found
-            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
-            links = self.driver.find_elements(By.XPATH, "//a[@tabindex='0']")
+            WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//a[@tabindex='0']")))
+            links = driver.find_elements(By.XPATH, "//a[@tabindex='0']")
             for a in links: # Adds non-duplicate links using a dictionary
                 link = a.get_attribute("href")
                 if "/p/" in link:
@@ -151,7 +149,7 @@ class Profile():
         index = 1
         if PATH not in os.listdir():
             os.mkdir("posts")
-
+        
         for post_url in posts:
             try:
                 post = Post(url=post_url)
@@ -169,12 +167,12 @@ class Profile():
                 print(f"Error in {index}")
                 continue
 
-    def get_random_post(self) -> Post:
+    async def get_random_post(self) -> Post:
         '''
         Gets a random post from the account
         '''
 
-        n_posts = int(WebDriverWait(self.driver, 100).until(EC.presence_of_element_located((By.CLASS_NAME, "g47SY "))).get_attribute("innerText").strip())
+        n_posts = int(WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.CLASS_NAME, "g47SY "))).get_attribute("innerText").strip())
         posts = self.load_profile(randrange(n_posts % 60)) # Makes sure the randrange does not exceed 60
 
         try:
@@ -183,7 +181,7 @@ class Profile():
         except IndexError:
             return 0
 
-    def get_post(self, index) -> Post:
+    async def get_post(self, index) -> Post:
         '''
         Gets a post based on an index
         '''
@@ -232,3 +230,12 @@ def instagram_login():
 
     pickle.dump(driver.get_cookies() , open(r"src\instagram\cookies.pkl", "wb"))
     driver.close()
+
+async def create_profile(query):
+    profile = Profile()
+    await profile._init(query)
+    return profile
+
+async def main():
+    profile = await create_profile("real yami")
+    await profile.get_post(40)

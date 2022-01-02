@@ -1,9 +1,10 @@
 import time
+import math
 
 import discord
 from discord.ext import commands
 
-from instagram.instagram_module import Post, Profile
+from instagram.instagram_module import Post, Profile, create_profile
 
 class Instagram_(commands.Cog, name="Instagram"):
     def __init__(self, bot):
@@ -19,7 +20,7 @@ class Instagram_(commands.Cog, name="Instagram"):
             embed.set_image(url=post.media)
 
         embed.add_field(name="Caption:", value=post.caption, inline=False)
-        embed.set_footer(text="Uploaded: "+post.upload_date+"\nExecution time: "+str((time.time() - start_time)))
+        embed.set_footer(text="Uploaded: "+post.upload_date+f"\nExecution time: {int(time.time() - start_time)} seconds")
         return embed
         
     @commands.group(invoke_without_command= True)
@@ -35,23 +36,23 @@ class Instagram_(commands.Cog, name="Instagram"):
         index = int(option)
         
         loading = await ctx.reply("Getting Profile..")
-        profile = Profile(query)
+        profile = await create_profile(query)
 
         if not profile.exist: # if the search results has no results
             await ctx.reply("No results found")
 
-        post = profile.get_post(index)
+        await loading.edit(content="Getting post..")
+        post = await profile.get_post(index)
 
         if not post: # if it fails while fetching the data
             await ctx.reply("Sorry. Something went wrong")
 
-        if post.is_video:
-            ctx.send(post.media)
-
         embed = self._get_Post_embed(profile, post, start_time)
-
-        await ctx.send(embed=embed)
-        await loading.delete()
+        if post.is_video:
+            await loading.edit(content=post.media)
+            await ctx.reply(embed=embed)
+        else:
+            await loading.edit(content="", embed=embed)
 
     @get.command()
     async def random(self, ctx, *, query):
@@ -60,23 +61,23 @@ class Instagram_(commands.Cog, name="Instagram"):
         '''
         start_time = time.time()
         loading = await ctx.reply("Getting Profile..")
-        profile = Profile(query)
+        profile = await create_profile(query)
 
         if not profile.exist:
             await ctx.reply("No results found")
-            
-        post = profile.get_random_post()
+
+        await loading.edit(content="Getting post..")  
+        post = await profile.get_random_post()
         
         if not post:
             await ctx.reply("Sorry. Something went wrong")
 
-        if post.is_video:
-            ctx.send(post.media)
-
         embed = self._get_Post_embed(profile, post, start_time)
-
-        await ctx.send(embed=embed)
-        await loading.delete()
+        if post.is_video:
+            await loading.edit(content=post.media)
+            await ctx.reply(embed=embed)
+        else:
+            await loading.edit(content="", embed=embed)
 
     @get.error
     async def get_error(self, ctx, error):
@@ -84,6 +85,7 @@ class Instagram_(commands.Cog, name="Instagram"):
         if isinstance(error, commands.errors.MissingRequiredArgument):
             await ctx.reply(error_message)
         if isinstance(error, commands.errors.CommandInvokeError):
+            print(error)
             await ctx.reply(error_message)
 
 def setup(bot):
