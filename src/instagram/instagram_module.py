@@ -17,7 +17,7 @@ CHROMEDRIVER = r"src\instagram\chromedriver.exe"
 
 opt = webdriver.ChromeOptions()
 opt.add_experimental_option('excludeSwitches', ['enable-logging'])
-opt.add_argument("--headless")
+# opt.add_argument("--headless")
 cookies = pickle.load(open(r"src\instagram\cookies.pkl", "rb"))
 driver = webdriver.Chrome(executable_path=CHROMEDRIVER, options=opt)
 driver.get("https://www.instagram.com/")
@@ -40,7 +40,6 @@ class Post():
         self.url = url
         url += "?__a=1"
         container = json.loads(requests.get(url).text)["graphql"]["shortcode_media"]
-
 
         self.is_video = container["is_video"]
         if self.is_video:
@@ -239,4 +238,8 @@ async def create_profile(query):
 
 async def main():
     profile = await create_profile("real yami")
-    await profile.get_post(40)
+    post = await profile.get_post(1)
+    print(post.media)
+
+if __name__ == "__main__":
+    asyncio.run(main())
