@@ -182,7 +182,7 @@ class NHentai_(commands.Cog, name="NHentai"):
         paginator.customize_button("last", button_label=">>", button_style=discord.ButtonStyle.blurple)
         
         await searching.delete()
-        await paginator.send(ctx)
+        await paginator.send(ctx) 
 
 def setup(bot):
     bot.add_cog(NHentai_(bot))
