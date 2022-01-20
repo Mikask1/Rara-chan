@@ -14,6 +14,7 @@ class ChatBot_(commands.Cog, name= "ChatBot"):
         '''
 
         response = rara_chan.answer(question)
+        print(f"Question: {question}\nAnswer: {response}")
         await ctx.reply(response)
 
 def setup(bot):

@@ -10,12 +10,16 @@ chatbot = ChatBot('rara chan',
     )
 
 def answer(message):
-    if message[:9] == "rara chan":
+    if message[:9].strip().lower() == "rara chan":
         return choice(["Yes darling?", "What is it master~", "H-hi", "...", "Who are you?", "What is it darling?~"])
 
     return chatbot.get_response(message)
 
 # For debugging purposes
 if __name__ == "__main__":
+    from chatterbot.trainers import ChatterBotCorpusTrainer
+    trainer = ChatterBotCorpusTrainer(chatbot)
+    trainer.train(r"C:\Users\darre\Desktop\Projects\Rara-chan\src\chatbot\dataset2\conversation.yml")
+
     while True:
         print(chatbot.get_response(input("> ")))
