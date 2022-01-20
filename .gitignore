@@ -5,6 +5,7 @@ logs.txt
 **/chromedriver.exe
 **/db.sqlite3
 **/test*
+src/chatbot/dataset*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
