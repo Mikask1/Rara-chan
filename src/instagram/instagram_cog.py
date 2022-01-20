@@ -1,30 +1,54 @@
+from dis import disco
 import time
-import math
+import asyncio
 
 import discord
 from discord.ext import commands
 
 from instagram.instagram_module import Post, Profile, create_profile
+from utils.dropdown_pagination import DropdownPaginator
 
 class Instagram_(commands.Cog, name="Instagram"):
     def __init__(self, bot):
         self.bot = bot
 
-    def _get_Post_embed(self, profile: Profile, post: Post, start_time: float):
+    def _get_Media_embed(self, username: str, post: Post, media: Post.Media, start_time: float):
         '''
         Gets the embed of a Post instance
         '''
         
-        embed = discord.Embed(title=profile.username, url=post.url, color=0xFF5733)
-        if not post.is_video:
-            embed.set_image(url=post.media)
+        embed = discord.Embed(title=username, url=post.url, color=0xFF5733)
+
+        if media.media_type == "image":
+            embed.set_image(url=media.url)
 
         embed.add_field(name="Caption:", value=post.caption, inline=False)
         embed.set_footer(text="Uploaded: "+post.upload_date+f"\nExecution time: {int(time.time() - start_time)} seconds")
         return embed
-        
+
+    def _get_Carousel_embed(self, username: str, posts: Post, start_time: float) -> DropdownPaginator:
+        page_list = []
+        options = []
+
+        for n, media in enumerate(posts.media, start=1):
+            options.append(discord.SelectOption(
+                label=f"Slide {n}"
+            ))
+            if media.media_type == "image":
+                embed = self._get_Media_embed(post=posts, username=username, media=media, start_time=start_time)
+                page_list.append(embed)
+    
+        paginator = DropdownPaginator(page_list, "Choose Page..", options=options)
+
+        paginator.customize_button("next", button_label=">", button_style=discord.ButtonStyle.green)
+        paginator.customize_button("prev", button_label="<", button_style=discord.ButtonStyle.green)
+        paginator.customize_button("first", button_label="<<", button_style=discord.ButtonStyle.blurple)
+        paginator.customize_button("last", button_label=">>", button_style=discord.ButtonStyle.blurple)
+
+        return paginator
+
     @commands.group(invoke_without_command= True)
-    async def get(self, ctx, option, *, query: str):
+    async def get(self, ctx: discord.abc.Messageable, option, *, query: str):
         '''
         Get a post from an Instagram account
 
@@ -32,6 +56,7 @@ class Instagram_(commands.Cog, name="Instagram"):
         Get a random or indexed post (index 1) from the profile
         '''
 
+        # Fix Post Class
         start_time = time.time()
         index = int(option)
         
@@ -42,20 +67,27 @@ class Instagram_(commands.Cog, name="Instagram"):
             await ctx.reply("No results found")
 
         await loading.edit(content="Getting post..")
-        post = await profile.get_post(index)
+        url = await profile.get_post(index)
 
-        if not post: # if it fails while fetching the data
+        if not url: # if it fails while fetching the data
             await ctx.reply("Sorry. Something went wrong")
 
-        embed = self._get_Post_embed(profile, post, start_time)
-        if post.is_video:
-            await loading.edit(content=post.media)
-            await ctx.reply(embed=embed)
+        task = asyncio.create_task(profile.get_properties(url))
+
+        post = await task
+        if post.is_carousel:
+            paginator = self._get_Carousel_embed(posts=post, username=profile.username, start_time=start_time)
+            await loading.delete()
+            await paginator.send(ctx)
         else:
-            await loading.edit(content="", embed=embed)
+            embed = self._get_Media_embed(post=post, username=profile.username, media=post.media, start_time=start_time)
+            if post.media.media_type == "video":
+                await loading.edit(content=post.media.url, embed=embed)
+            else:
+                await loading.edit(content="", embed=embed)
 
     @get.command()
-    async def random(self, ctx, *, query):
+    async def random(self, ctx: discord.abc.Messageable, *, query):
         '''
         Gets a random post from an Instagram account
         '''

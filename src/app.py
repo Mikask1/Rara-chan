@@ -2,11 +2,8 @@ from random import randrange, choice
 import os
 from datetime import datetime
 
-from discord.ui.button import Button
 import discord
-from discord import message
-from discord import embeds
-from discord.ext import commands, pages
+from discord.ext import commands
 from dotenv import load_dotenv
 
 from utils import utilities

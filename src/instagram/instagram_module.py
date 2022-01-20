@@ -23,6 +23,10 @@ driver = webdriver.Chrome(executable_path=CHROMEDRIVER, options=opt)
 driver.get("https://www.instagram.com/")
 for cookie in cookies:
     driver.add_cookie(cookie)
+session = requests.Session()
+for cookie in cookies:
+    session.cookies.set(cookie['name'], cookie['value'])
+
 driver.refresh()
 
 class Post():
@@ -35,27 +39,39 @@ class Post():
         upload date : str
     }
     '''
+    # TODO: make loading into a Post class a different method in the Profile class, 
+    # so get_post() method is just returning a url
+    class Media():
+        def __init__(self, container):
+            media_type_dct = {1: "image", 2: "video"}
+            self.media_type = media_type_dct[container["media_type"]]
+            
+            if self.media_type == "image":
+                self.url = container["image_versions2"]["candidates"][0]["url"]
+            elif self.media_type == "video":
+                self.url = container["video_versions"][0]["url"]
 
     def __init__(self, url) -> None:
         self.url = url
         url += "?__a=1"
-        container = json.loads(requests.get(url).text)["graphql"]["shortcode_media"]
 
-        self.is_video = container["is_video"]
-        if self.is_video:
-            self.media = container["video_url"]
+        request = session.get(url).text
+
+        container = json.loads(request)["items"][0]
+        unix = container["taken_at"]
+        self.upload_date = datetime.utcfromtimestamp(unix).strftime('%d %B %Y %H:%M:%S')
+
+        self.is_carousel = True if container["media_type"] == 8 else False
+
+        if self.is_carousel:
+            self.media = []
+            for item in container["carousel_media"]:
+                self.media.append(self.Media(item))
         else:
-            self.media = container["display_resources"][-1]["src"]
+            self.media = self.Media(container)
 
-        caption_container = container["edge_media_to_caption"]["edges"]
-        if caption_container:
-            self.caption = caption_container[0]["node"]["text"]
-        else:
-            self.caption = "."
+        self.caption = container["caption"]["text"] if container["caption"] else None
 
-        self.unix = container["taken_at_timestamp"]
-        self.upload_date = datetime.utcfromtimestamp(self.unix).strftime('%d %B %Y %H:%M:%S')
-        
 class Profile():
     '''
     This is a Profile Class
@@ -115,7 +131,8 @@ class Profile():
         
         links = []
         while len(posts) < index: # Keeps scrolling down until the index of the post is found
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            if index > 12:
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
             WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//a[@tabindex='0']")))
             links = driver.find_elements(By.XPATH, "//a[@tabindex='0']")
@@ -128,46 +145,7 @@ class Profile():
 
         return list(posts.keys())
 
-
-    def download(self, start, end):
-        """
-        Downloads every single post from start to end (1 based index).
-        It only works with images because videos have weird links
-
-        How does it work?
-        1. Open chrome and visit instagram and load the cookies in it (login credentials)
-        2. Input the query onto the search bar and returns the first account
-        3. Loads all the post and getting their links by scrolling down until the `end` index is found
-        4. Loads all the post and gets the image from each one of them
-        5. Writes the byte stream onto a .jpg file
-        """
-        
-        PATH = "src/instagram/posts/"
-
-        posts = self.load_profile(end)[start-1:end]
-
-        index = 1
-        if PATH not in os.listdir():
-            os.mkdir("posts")
-        
-        for post_url in posts:
-            try:
-                post = Post(url=post_url)
-
-                url = post.media
-                if not post.is_video:
-                    with open(PATH+str(index)+".jpg", "wb") as file:
-                        file.write(requests.get(url).content)
-                else:
-                    with open(PATH+str(index)+".mp4", "wb") as file:
-                        file.write(requests.get(url).content)
-
-                index += 1
-            except Exception:
-                print(f"Error in {index}")
-                continue
-
-    async def get_random_post(self) -> Post:
+    async def get_random_post(self) -> str:
         '''
         Gets a random post from the account
         '''
@@ -177,11 +155,11 @@ class Profile():
 
         try:
             post_url = choice(posts)
-            return Post(post_url)
+            return post_url
         except IndexError:
             return 0
 
-    async def get_post(self, index) -> Post:
+    async def get_post(self, index) -> str:
         '''
         Gets a post based on an index
         '''
@@ -189,9 +167,12 @@ class Profile():
         posts = self.load_profile(index)
         try:
             post_url = posts[index-1]
-            return Post(post_url)
+            return post_url
         except IndexError:
             return 0
+    
+    async def get_properties(self, url) -> Post:
+        return Post(url)
 
 def instagram_login():
     '''
@@ -236,10 +217,15 @@ async def create_profile(query):
     await profile._init(query)
     return profile
 
+
 async def main():
-    profile = await create_profile("real yami")
-    post = await profile.get_post(1)
-    print(post.media)
+    profile1 = await create_profile("tom holland")
+    url1 = await profile1.get_post(1)
+    task1 = asyncio.create_task(profile1.get_properties(url1))
+
+    post1 = await task1
+    for i in post1.media:
+        print(i.url)
 
 if __name__ == "__main__":
     asyncio.run(main())
