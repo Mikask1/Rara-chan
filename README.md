@@ -1,5 +1,7 @@
 # Rara-chan
-My personal discord bot that I use for stuff that I find interesting.  
+- My personal discord bot that I use for stuff that I find interesting.
+- It's called "Rara-chan" because I wanted to make a waifu bot but failed miserably so now it's an nsfw bot which is the second best thing.
+- This is argueably the most structured code that I have ever made.
 
 ## Features
 - Responds to certain messages
