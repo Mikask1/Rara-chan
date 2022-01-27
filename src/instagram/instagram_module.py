@@ -23,11 +23,10 @@ driver = webdriver.Chrome(executable_path=CHROMEDRIVER, options=opt)
 driver.get("https://www.instagram.com/")
 for cookie in cookies:
     driver.add_cookie(cookie)
+driver.refresh()
 session = requests.Session()
 for cookie in cookies:
     session.cookies.set(cookie['name'], cookie['value'])
-
-driver.refresh()
 
 class Post():
     '''
@@ -39,8 +38,7 @@ class Post():
         upload date : str
     }
     '''
-    # TODO: make loading into a Post class a different method in the Profile class, 
-    # so get_post() method is just returning a url
+
     class Media():
         def __init__(self, container):
             media_type_dct = {1: "image", 2: "video"}
