@@ -28,6 +28,7 @@ session = requests.Session()
 for cookie in cookies:
     session.cookies.set(cookie['name'], cookie['value'])
 
+
 class Post():
     '''
     This is a Post Class
@@ -43,7 +44,7 @@ class Post():
         def __init__(self, container):
             media_type_dct = {1: "image", 2: "video"}
             self.media_type = media_type_dct[container["media_type"]]
-            
+
             if self.media_type == "image":
                 self.url = container["image_versions2"]["candidates"][0]["url"]
             elif self.media_type == "video":
@@ -57,7 +58,8 @@ class Post():
 
         container = json.loads(request)["items"][0]
         unix = container["taken_at"]
-        self.upload_date = datetime.utcfromtimestamp(unix).strftime('%d %B %Y %H:%M:%S')
+        self.upload_date = datetime.utcfromtimestamp(
+            unix).strftime('%d %B %Y %H:%M:%S')
 
         self.is_carousel = True if container["media_type"] == 8 else False
 
@@ -69,6 +71,7 @@ class Post():
             self.media = self.Media(container)
 
         self.caption = container["caption"]["text"] if container["caption"] else None
+
 
 class Profile():
     '''
@@ -86,7 +89,6 @@ class Profile():
     get_post : Get an indexed post from the profile
     '''
 
-
     def __init__(self) -> None:
         pass
 
@@ -96,26 +98,30 @@ class Profile():
         if query[:26] == "https://www.instagram.com/":
             self.link = query
         else:
-            search = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Search']")))
+            search = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Search']")))
             search.clear()
             search.send_keys(query)
 
             # Waits until the search bar finishes it's search
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@aria-hidden='false']")))
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@role='none']")))
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located(
+                (By.XPATH, "//div[@aria-hidden='false']")))
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//div[@role='none']")))
             results = driver.find_elements(By.XPATH, "//div[@role='none']")
 
             index = 0
-            if results: # if the search query returns anything
-                while results: # Checks if the result is an account
-                    self.link = results[index].find_element(By.TAG_NAME, "a").get_attribute("href")
+            if results:  # if the search query returns anything
+                while results:  # Checks if the result is an account
+                    self.link = results[index].find_element(
+                        By.TAG_NAME, "a").get_attribute("href")
                     if "explore" in self.link:
                         index += 1
                         continue
                     break
             else:
                 self.exist = 0
-        
+
         if self.link:
             self.username = self.link[26:-1]
             driver.get(self.link)
@@ -126,15 +132,17 @@ class Profile():
         '''
 
         posts = {}
-        
-        links = []
-        while len(posts) < index: # Keeps scrolling down until the index of the post is found
-            if index > 12:
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
-            WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, "//a[@tabindex='0']")))
+        links = []
+        while len(posts) < index:  # Keeps scrolling down until the index of the post is found
+            if index > 12:
+                driver.execute_script(
+                    "window.scrollTo(0, document.body.scrollHeight);")
+
+            WebDriverWait(driver, 100).until(
+                EC.presence_of_element_located((By.XPATH, "//a[@tabindex='0']")))
             links = driver.find_elements(By.XPATH, "//a[@tabindex='0']")
-            for a in links: # Adds non-duplicate links using a dictionary
+            for a in links:  # Adds non-duplicate links using a dictionary
                 link = a.get_attribute("href")
                 if "/p/" in link:
                     posts[link] = 0
@@ -148,8 +156,10 @@ class Profile():
         Gets a random post from the account
         '''
 
-        n_posts = int(WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "g47SY "))).get_attribute("innerText").strip())
-        posts = self.load_profile(randrange(n_posts % 60)) # Makes sure the randrange does not exceed 60
+        n_posts = int(WebDriverWait(driver, 10).until(EC.presence_of_element_located(
+            (By.CLASS_NAME, "g47SY "))).get_attribute("innerText").strip())
+        # Makes sure the randrange does not exceed 60
+        posts = self.load_profile(randrange(n_posts % 60))
 
         try:
             post_url = choice(posts)
@@ -168,9 +178,10 @@ class Profile():
             return post_url
         except IndexError:
             return 0
-    
+
     async def get_properties(self, url) -> Post:
         return Post(url)
+
 
 def instagram_login():
     '''
@@ -181,7 +192,7 @@ def instagram_login():
     then press "Turn On" to turn on notification
     then saves the cookies in a pickle which will be applied in the future to the webdriver
     '''
-    
+
     from selenium import webdriver
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support.ui import WebDriverWait
@@ -196,19 +207,24 @@ def instagram_login():
     driver = webdriver.Chrome(executable_path=CHROMEDRIVER, options=opt)
     driver.get("https://www.instagram.com/")
 
-    username = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='username']")))
-    password = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='password']")))
+    username = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='username']")))
+    password = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='password']")))
     username.clear()
-    password.clear()   
+    password.clear()
     username.send_keys(USERNAME)
     password.send_keys(PASSWORD)
 
     driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Save Info')]"))).click()
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Turn On')]"))).click()
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located(
+        (By.XPATH, "//button[contains(text(), 'Save Info')]"))).click()
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located(
+        (By.XPATH, "//button[contains(text(), 'Turn On')]"))).click()
 
-    pickle.dump(driver.get_cookies() , open(r"src\instagram\cookies.pkl", "wb"))
+    pickle.dump(driver.get_cookies(), open(r"src\instagram\cookies.pkl", "wb"))
     driver.close()
+
 
 async def create_profile(query):
     profile = Profile()

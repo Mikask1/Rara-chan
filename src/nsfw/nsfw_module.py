@@ -8,6 +8,7 @@ from utils import utilities
 
 proxyDict = utilities.get_proxy()
 
+
 class NSFW():
     '''
     This is an NSFW Class
@@ -20,7 +21,8 @@ class NSFW():
         pass
 
     def get_nsfw(self) -> str:
-        html = requests.get("https://www.imagefap.com/pictures/8925384/Zero-Two-%28Darling-in-the-Franxx%29?gid=8925384&view=2", proxies=proxyDict).text
+        html = requests.get(
+            "https://www.imagefap.com/pictures/8925384/Zero-Two-%28Darling-in-the-Franxx%29?gid=8925384&view=2", proxies=proxyDict).text
         soup = BeautifulSoup(html, 'lxml')
 
         # Get the div with id="gallery"
@@ -29,7 +31,8 @@ class NSFW():
         # Randomly choose one of the children(columns)
         # Go to <img> tag and get the "src"
         try:
-            image = choice(list(choice(list(soup.find("div", id="gallery").form.table.children)[1:-1]).children)[1:-1]).img["src"]
+            image = choice(list(choice(list(soup.find("div", id="gallery").form.table.children)[
+                           1:-1]).children)[1:-1]).img["src"]
         except Exception:
             image = ""
         return image

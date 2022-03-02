@@ -2,6 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
+
 def get_cogs(folder):
     subfolders = [file.path for file in os.scandir(folder) if file.is_dir()]
     paths = [os.listdir(path) for path in subfolders]
@@ -11,6 +12,7 @@ def get_cogs(folder):
             if file.endswith("cog.py"):
                 cogs.append(file)
     return cogs
+
 
 def checkPattern(message, pattern):
     '''
@@ -32,15 +34,16 @@ def checkPattern(message, pattern):
         if i == pattern[index]:
             check += 1
             index += 1
-        
+
         if check == len(pattern):
             return True
     return False
-    
+
+
 def in_oneWord(message, pattern):
     '''
     Checks if the pattern is in one word
-    
+
     Example:
     not "Understand world organization grandpa yeet"
     yes "UnderstandWorldOrganizationGrandpaYeet"
@@ -50,6 +53,7 @@ def in_oneWord(message, pattern):
         if checkPattern(i, pattern):
             return True
     return False
+
 
 def get_proxy():
     '''
@@ -62,21 +66,24 @@ def get_proxy():
     from bs4 import BeautifulSoup
     import requests
 
-    try: # if nhentai.net is blocked
+    try:  # if nhentai.net is blocked
         requests.get("https://nhentai.net")
         return {}
     except Exception:
         # Find available free proxy
-        soup = BeautifulSoup(requests.get("https://free-proxy-list.net").text, 'lxml')
-        table = list(soup.find("table", class_ = "table table-striped table-bordered").thead.find_next_sibling().children)
+        soup = BeautifulSoup(requests.get(
+            "https://free-proxy-list.net").text, 'lxml')
+        table = list(soup.find(
+            "table", class_="table table-striped table-bordered").thead.find_next_sibling().children)
 
         print("Getting a working proxy server..")
         for i in table:
-            https = i.find("td", class_ = "hx").text
+            https = i.find("td", class_="hx").text
             if https == "yes":
-                proxy = ":".join(map(lambda ip : ip.text, i.select("td")[:2]))
+                proxy = ":".join(map(lambda ip: ip.text, i.select("td")[:2]))
                 try:
-                    result = requests.get("https://nhentai.net", proxies={"https" : "https://"+proxy})
+                    result = requests.get(
+                        "https://nhentai.net", proxies={"https": "https://"+proxy})
                 except Exception:
                     print("Failed. Retrying..")
                     continue
@@ -85,7 +92,7 @@ def get_proxy():
 
         print("Connected to:", proxy)
         proxyDict = {
-                    "http"  : "http://"+proxy, 
-                    "https" : "https://"+proxy, 
-                    }
+            "http": "http://"+proxy,
+            "https": "https://"+proxy,
+        }
         return proxyDict
