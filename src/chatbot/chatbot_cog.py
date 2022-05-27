@@ -10,7 +10,7 @@ class ChatBot_(commands.Cog, name="ChatBot"):
 
     @commands.command(aliases=["CHAT"])
     async def chat(self, ctx, *, question: str):
-        '''
+        ''' 
         Uses the ChatterBot library to generate responses
         '''
 
