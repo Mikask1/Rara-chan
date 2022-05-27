@@ -12,7 +12,7 @@ chatbot = ChatBot('rara chan',
                   )
 
 
-def answer(message):
+def answer(message): 
     if message[:9].strip().lower() == "rara chan":
         return choice(["Yes darling?", "What is it master~", "H-hi", "...", "Who are you?", "What is it darling?~"])
 

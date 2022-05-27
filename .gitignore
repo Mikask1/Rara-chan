@@ -6,6 +6,7 @@ logs.txt
 **/db.sqlite3
 **/test*
 src/chatbot/dataset*
+src\image_detection\Furry-Detection-Model
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

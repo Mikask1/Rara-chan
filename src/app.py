@@ -1,6 +1,10 @@
 from random import randrange, choice
 import os
 from datetime import datetime
+import requests
+import io
+
+from PIL import Image
 
 import discord
 from discord.ext import commands
@@ -8,6 +12,7 @@ from dotenv import load_dotenv
 
 from utils import utilities
 from utils.dropdown_pagination import DropdownPaginator
+from image_detection.image_detection_module import predict
 
 load_dotenv()
 
@@ -63,6 +68,19 @@ class RaraChan(commands.Bot):
             if randrange(500) == 3:
                 print(ctx.author)
                 await ctx.channel.send(f"Yadaa~~, <@{+ctx.author.id}> ga hentaiii~ (／≧ω＼). BAKAA!!")
+            
+            attachments = ctx.attachments
+
+            for file in attachments:
+                try:
+                    content = requests.get(file).content
+                    img = Image.open(io.BytesIO(content))
+                    idx = predict(img)
+                    if idx == 1:
+                        await ctx.reply("I sense a **disgusting** Furry")
+                except Exception as e:
+                    print(e)
+                    continue
 
             await self.process_commands(ctx)
 
