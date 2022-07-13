@@ -4,7 +4,7 @@
 
 ## Features
 - Responds to certain messages
-- ChatBot capabilities
+- Shitty ChatBot capabilities
 - NHentai scraper
 - Instagram scraper (is this illegal? Probably)
 - NSFW scraper
