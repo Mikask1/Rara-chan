@@ -1,7 +1,6 @@
 # Rara-chan
-- My personal discord bot that I use for stuff that I find interesting.
-- It's called "Rara-chan" because I wanted to make a waifu bot but failed miserably so now it's an nsfw bot which is the second best thing.
-- This is argueably the most structured code that I have ever made.
+- My personal discord bot that I use for fun.
+- It's called "Rara-chan" because I wanted to make a waifu bot but failed miserably so now it's an nsfw bot as per my friends' requests.
 
 ## Features
 - Responds to certain messages
@@ -9,6 +8,7 @@
 - NHentai scraper
 - Instagram scraper (is this illegal? Probably)
 - NSFW scraper
+- It can detect furry images with 86% accuracy
 
 ## Commands
 ### General commands
